@@ -676,6 +676,22 @@ require('lazy').setup({
     },
   },
 
+  {
+    'https://gitlab.com/HiPhish/rainbow-delimiters.nvim',
+    config = function()
+      vim.api.nvim_set_hl(0, 'RainbowDelimiterFirst', { fg = '#1e90ff', ctermfg = 'blue' })
+      vim.api.nvim_set_hl(0, 'RainbowDelimiterSecond', { fg = '#ff0000', ctermfg = 'red' })
+      vim.api.nvim_set_hl(0, 'RainbowDelimiterThird', { fg = '#00ff00', ctermfg = 'green' })
+      require('rainbow-delimiters.setup').setup {
+        highlight = {
+          'RainbowDelimiterFirst',
+          'RainbowDelimiterSecond',
+          'RainbowDelimiterThird',
+        },
+      }
+    end,
+  },
+
   -- highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'vimenter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
