@@ -72,6 +72,14 @@ vim.opt.scrolloff = 10
 vim.opt.hlsearch = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+-- Disable diagnostic signs (gutter) so gitsigns has preference, furthermore highlights already mark the line
+vim.diagnostic.config {
+  virtual_text = true,
+  signs = false,
+  underline = true,
+  update_in_insert = true,
+}
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
@@ -160,13 +168,35 @@ require('lazy').setup({
     'lewis6991/gitsigns.nvim',
     opts = {
       signs = {
-        add = { text = '+' },
-        change = { text = '~' },
+        add = { text = '┃' },
+        change = { text = '┃' },
         delete = { text = '_' },
         topdelete = { text = '‾' },
-        changedelete = { text = '~' },
+        changedelete = { text = '┃' },
+        untracked = { text = '┆' },
       },
+      current_line_blame = true,
     },
+  },
+
+  {
+    'tpope/vim-fugitive',
+  },
+  {
+    'lewis6991/satellite.nvim',
+    config = function()
+      require('satellite').setup {
+        handlers = {
+          gitsigns = {
+            signs = {
+              add = '│',
+              change = '│',
+              delete = '│',
+            },
+          },
+        },
+      }
+    end,
   },
 
   -- NOTE: Plugins can also be configured to run lua code when they are loaded.
