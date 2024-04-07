@@ -35,6 +35,7 @@ end
 
 return {
   check = function()
+    vim.opt.foldlevel = 99
     vim.health.start 'kickstart.nvim'
 
     vim.health.info [[NOTE: Not every warning is a 'must-fix' in `:checkhealth`
