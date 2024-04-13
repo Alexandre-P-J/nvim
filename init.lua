@@ -198,7 +198,34 @@ require('lazy').setup({
       }
     end,
   },
-
+  {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    config = function()
+      require('copilot').setup {
+        suggestion = {
+          enabled = true,
+          auto_trigger = true,
+          keymap = {
+            accept = '<C-e>',
+            next = '<C-.>',
+            prev = '<C-,>',
+          },
+        },
+        filetypes = {
+          yaml = true,
+          markdown = true,
+          help = true,
+          gitcommit = true,
+          gitrebase = true,
+          hgcommit = true,
+          svn = true,
+          cvs = true,
+        },
+      }
+    end,
+  },
   -- NOTE: Plugins can also be configured to run lua code when they are loaded.
   --
   -- This is often very useful to both group configuration, as well as handle
@@ -394,10 +421,25 @@ require('lazy').setup({
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
-          -- NOTE: Remember that lua is a real programming language, and as such it is possible
-          -- to define small helper and utility functions so you don't have to repeat yourself
-          -- many times.
-          --
+          local bemol = function()
+            local bemol_dir = vim.fs.find({ '.bemol' }, { upward = true, type = 'directory' })[1]
+            local ws_folders_lsp = {}
+            if bemol_dir then
+              local file = io.open(bemol_dir .. '/ws_root_folders', 'r')
+              if file then
+                for line in file:lines() do
+                  table.insert(ws_folders_lsp, line)
+                end
+                file:close()
+              end
+            end
+            for _, line in ipairs(ws_folders_lsp) do
+              vim.lsp.buf.add_workspace_folder(line)
+            end
+          end
+
+          bemol()
+
           -- In this case, we create a function that lets us more easily define mappings specific
           -- for LSP related items. It sets the mode, buffer and description for us each time.
           local map = function(keys, func, desc)
@@ -487,6 +529,7 @@ require('lazy').setup({
         -- pyright = {},
         rust_analyzer = {},
         glsl_analyzer = {},
+        jdtls = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -550,10 +593,14 @@ require('lazy').setup({
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
+          -- This replaces the jdtls (from mason) handler (see default above) with a noop function
+          ['jdtls'] = function(_) end,
         },
       }
     end,
   },
+
+  { 'mfussenegger/nvim-jdtls' },
 
   { -- Autoformat
     'stevearc/conform.nvim',
