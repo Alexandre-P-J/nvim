@@ -289,6 +289,7 @@ require('lazy').setup({
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
       { 'nvim-telescope/telescope-live-grep-args.nvim' },
+      { 'sindrets/diffview.nvim' },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -309,7 +310,8 @@ require('lazy').setup({
       -- This opens a window that shows you all of the keymaps for the current
       -- telescope picker. This is really useful to discover what Telescope can
       -- do as well as how to actually do it!
-
+      local actions = require 'telescope.actions'
+      local action_state = require 'telescope.actions.state'
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
       require('telescope').setup {
@@ -321,7 +323,27 @@ require('lazy').setup({
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
         --   },
         -- },
-        -- pickers = {}
+        pickers = {
+          git_commits = {
+            mappings = {
+              i = {
+                ['<c-j>'] = actions.preview_scrolling_down,
+                ['<c-k>'] = actions.preview_scrolling_up,
+                ['<c-d>'] = function()
+                  -- Open in diffview
+                  local selected_entry = action_state.get_selected_entry()
+                  local value = selected_entry.value
+                  -- close Telescope window properly prior to switching windows
+                  vim.api.nvim_win_close(0, true)
+                  vim.cmd 'stopinsert'
+                  vim.schedule(function()
+                    vim.cmd(('DiffviewOpen %s^!'):format(value))
+                  end)
+                end,
+              },
+            },
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -337,6 +359,7 @@ require('lazy').setup({
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
       local live_grep_args = require('telescope').extensions.live_grep_args
+      vim.keymap.set('n', '<leader>sc', builtin.git_commits, { desc = '[S]earch [C]ommits' })
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
@@ -662,7 +685,7 @@ require('lazy').setup({
             luasnip.lsp_expand(args.body)
           end,
         },
-        completion = { completeopt = 'menu,menuone,noinsert' },
+        completion = { completeopt = 'menu,menuone,noinsert,noselect' },
 
         -- For an understanding of why these mappings were
         -- chosen, you will need to read `:help ins-completion`
